@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时工资计算器</title>
+    <style>
+        :root {
+            --primary-color: #4a6bdf;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ff6b6b;
+            --text-color: #333;
+            --light-text: #6c757d;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        
+        .calculator-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--light-text);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 107, 223, 0.2);
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #3a5bd9;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+        }
+        
+        .earnings-display {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+        
+        .time-unit {
+            font-size: 16px;
+            color: var(--light-text);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: var(--secondary-color);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 120px;
+            margin: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+        
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .toggle-btn {
+            padding: 8px 15px;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .toggle-btn:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        
+        .toggle-btn:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .toggle-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 600px) {
+            .calculator-card {
+                padding: 20px;
+            }
+            
+            .earnings-display {
+                font-size: 28px;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator-card">
+            <h1>实时工资计算器</h1>
+            
+            <div class="input-group">
+                <label for="salary">月薪 (元)</label>
+                <input type="number" id="salary" placeholder="请输入您的月薪">
+            </div>
+            
+            <div class="input-group">
+                <label for="workdays">每月工作天数</label>
+                <input type="number" id="workdays" placeholder="通常为22天" value="22">
+            </div>
+            
+            <div class="input-group">
+                <label for="dailyHours">每日工作小时数</label>
+                <input type="number" id="dailyHours" placeholder="通常为8小时" value="8">
+            </div>
+            
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="secondBtn">显示累计工资</button>
+                <button class="toggle-btn" id="hourBtn">显示实时工资率</button>
+            </div>
+            
+            <button id="startBtn">开始计算</button>
+            <button id="resetBtn" style="background-color: var(--light-text); margin-top: 10px;">重置</button>
+            
+            <div class="result-container" id="resultContainer">
+                <div class="time-unit" id="timeUnitText">您已赚取：</div>
+                <div class="earnings-display animation" id="earningsDisplay">0.00 元</div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="hourlyRate">0.00</div>
+                        <div class="stat-label">每小时</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="dailyRate">0.00</div>
+                        <div class="stat-label">每天</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="monthlyRate">0.00</div>
+                        <div class="stat-label">每月</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>努力工作，也要注意休息哦！</p>
+        </div>
+    </div>
+
+    <script>
+        let timer;
+        let isRunning = false;
+        let displayMode = 'total'; // 'total' or 'rate'
+        let startTime;
+        let secondSalary = 0;
+        let hourlySalary = 0;
+        
+        const salaryInput = document.getElementById('salary');
+        const workdaysInput = document.getElementById('workdays');
+        const dailyHoursInput = document.getElementById('dailyHours');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const earningsDisplay = document.getElementById('earningsDisplay');
+        const timeUnitText = document.getElementById('timeUnitText');
+        const hourlyRate = document.getElementById('hourlyRate');
+        const dailyRate = document.getElementById('dailyRate');
+        const monthlyRate = document.getElementById('monthlyRate');
+        const secondBtn = document.getElementById('secondBtn');
+        const hourBtn = document.getElementById('hourBtn');
+        
+        startBtn.addEventListener('click', toggleCalculation);
+        resetBtn.addEventListener('click', resetCalculator);
+        secondBtn.addEventListener('click', () => switchDisplayMode('total'));
+        hourBtn.addEventListener('click', () => switchDisplayMode('rate'));
+        
+        function toggleCalculation() {
+            if (isRunning) {
+                pauseCalculation();
+            } else {
+                startCalculation();
+            }
+        }
+        
+        function startCalculation() {
+            const salary = parseFloat(salaryInput.value);
+            const workdays = parseFloat(workdaysInput.value);
+            const dailyHours = parseFloat(dailyHoursInput.value);
+            
+            if (!salary || salary <= 0 || !workdays || workdays <= 0 || !dailyHours || dailyHours <= 0) {
+                alert('请输入有效的数值');
+                return;
+            }
+            
+            // 计算各种比率
+            const monthlySalary = salary;
+            const dailySalary = monthlySalary / workdays;
+            hourlySalary = dailySalary / dailyHours;
+            secondSalary = hourlySalary / 3600;
+            
+            // 更新统计卡片
+            hourlyRate.textContent = hourlySalary.toFixed(2);
+            dailyRate.textContent = dailySalary.toFixed(2);
+            monthlyRate.textContent = monthlySalary.toFixed(2);
+            
+            if (!startTime) {
+                startTime = new Date();
+            }
+            
+            // 开始计时器
+            timer = setInterval(updateEarningsDisplay, 100);
+            
+            startBtn.textContent = '暂停计算';
+            resultContainer.style.display = 'block';
+            isRunning = true;
+            earningsDisplay.classList.add('animation');
+        }
+        
+        function pauseCalculation() {
+            clearInterval(timer);
+            startBtn.textContent = '继续计算';
+            isRunning = false;
+            earningsDisplay.classList.remove('animation');
+        }
+        
+        function updateEarningsDisplay() {
+            const now = new Date();
+            const elapsedSeconds = (now - startTime) / 1000;
+            const earned = secondSalary * elapsedSeconds;
+            
+            if (displayMode === 'total') {
+                earningsDisplay.textContent = earned.toFixed(2) + ' 元';
+                timeUnitText.textContent = '您已赚取：';
+            } else {
+                earningsDisplay.textContent = hourlySalary.toFixed(2) + ' 元/小时';
+                timeUnitText.textContent = '您当前的工资率：';
+            }
+        }
+        
+        function resetCalculator() {
+            clearInterval(timer);
+            salaryInput.value = '';
+            workdaysInput.value = '22';
+            dailyHoursInput.value = '8';
+            earningsDisplay.textContent = '0.00 元';
+            resultContainer.style.display = 'none';
+            startBtn.textContent = '开始计算';
+            isRunning = false;
+            startTime = null;
+            earningsDisplay.classList.remove('animation');
+            switchDisplayMode('total');
+        }
+        
+        function switchDisplayMode(mode) {
+            displayMode = mode;
+            
+            if (mode === 'total') {
+                secondBtn.classList.add('active');
+                hourBtn.classList.remove('active');
+                timeUnitText.textContent = '您已赚取：';
+            } else {
+                secondBtn.classList.remove('active');
+                hourBtn.classList.add('active');
+                timeUnitText.textContent = '您当前的工资率：';
+            }
+            
+            // 如果正在运行，立即更新显示
+            if (isRunning) {
+                updateEarningsDisplay();
+            }
+        }
+    </script>
+</body>
+</html>
